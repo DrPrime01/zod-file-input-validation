@@ -1,27 +1,37 @@
-import z from "zod";
+import { z } from "zod";
 
 const fileSizeLimit = 5 * 1024 * 1024; // 5MB
 
+// Document Schema
 export const DOCUMENT_SCHEMA = z
-  .object({
-    type: z.enum(
+  .instanceof(File)
+  .refine(
+    (file) =>
       [
         "application/pdf",
         "application/vnd.ms-excel",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      ],
-      { message: "Invalid document file type" }
-    ),
-    size: z.number().max(fileSizeLimit, "File size should not exceed 5MB"),
-  })
-  .refine((file) => !!file, { message: "File is required" });
+      ].includes(file.type),
+    { message: "Invalid document file type" }
+  )
+  .refine((file) => file.size <= fileSizeLimit, {
+    message: "File size should not exceed 5MB",
+  });
 
+// Image Schema
 export const IMAGE_SCHEMA = z
-  .object({
-    type: z.enum(
-      ["image/png", "image/jpeg", "image/jpg", "image/svg+xml", "image/gif"],
-      { message: "Invalid image file type" }
-    ),
-    size: z.number().max(fileSizeLimit, "File size should not exceed 5MB"),
-  })
-  .refine((file) => !!file, { message: "File is required" });
+  .instanceof(File)
+  .refine(
+    (file) =>
+      [
+        "image/png",
+        "image/jpeg",
+        "image/jpg",
+        "image/svg+xml",
+        "image/gif",
+      ].includes(file.type),
+    { message: "Invalid image file type" }
+  )
+  .refine((file) => file.size <= fileSizeLimit, {
+    message: "File size should not exceed 5MB",
+  });
